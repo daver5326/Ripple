@@ -29,16 +29,13 @@ export default function Map() {
           const venue = show.venues;
           const artist = show.artist_profiles;
 
-          if (!venue?.location) return;
-
-          // PostGIS returns location as GeoJSON
-          const lng = venue.location.coordinates?.[0];
-          const lat = venue.location.coordinates?.[1];
+          const lat = venue?.latitude;
+          const lng = venue?.longitude;
 
           if (!lat || !lng) return;
 
           const artistName = artist?.name || 'Unknown Artist';
-          const venueName = venue.name || '';
+          const venueName = venue?.name || '';
           const showDate = new Date(show.starts_at).toLocaleDateString();
 
           const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
