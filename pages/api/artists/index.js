@@ -6,13 +6,21 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
-  if (req.method === 'GET') {
-    const { data, error } = await supabase.from('artists').select('*');
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('artist_profiles')
+      .select('*');
+
     if (error) {
       return res.status(500).json({ error: error.message });
     }
-    return res.status(200).json(data);
-  }
 
-  return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(200).json(data);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
 }
