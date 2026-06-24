@@ -16,7 +16,7 @@ export default async function handler(req, res) {
       .select(`
         *,
         artist_profiles(name, slug, genre_tags),
-        venues(name, address, city, state, geohash, location)
+        venues(name, address, city, state, latitude, longitude)
       `)
       .eq('status', 'published')
       .order('starts_at', { ascending: true });
