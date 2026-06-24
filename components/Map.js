@@ -35,12 +35,13 @@ export default function Map() {
           if (!lat || !lng) return;
 
           const artistName = artist?.name || 'Unknown Artist';
+          const artistSlug = artist?.slug || '';
           const venueName = venue?.name || '';
           const showDate = new Date(show.starts_at).toLocaleDateString();
 
           const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
             '<div style="font-family:system-ui;padding:4px">' +
-            '<div style="font-weight:700;font-size:14px">' + artistName + '</div>' +
+            '<a href="/artists/' + artistSlug + '" style="font-weight:700;font-size:14px;color:#1e2d4a;text-decoration:none;">' + artistName + '</a>' +
             '<div style="font-size:13px">' + venueName + '</div>' +
             '<div style="font-size:12px;color:#666">' + showDate + '</div>' +
             '</div>'
