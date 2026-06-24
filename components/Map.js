@@ -3,62 +3,69 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 export default function Map() {
- const mapContainerRef = useRef(null);
- const mapRef = useRef(null);
+  const mapContainerRef = useRef(null);
+  const mapRef = useRef(null);
 
- useEffect(() => {
-   if (mapRef.current) return;
+  useEffect(() => {
+    if (mapRef.current) return;
 
-   mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
-   const map = new mapboxgl.Map({
-     container: mapContainerRef.current,
-     style: 'mapbox://styles/mapbox/streets-v12',
-     center: [-92.2896, 34.7465],
-     zoom: 8,
-   });
+    const map = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [-92.2896, 34.7465],
+      zoom: 8,
+    });
 
-   mapRef.current = map;
+    mapRef.current = map;
 
-   map.on('load', async () => {
-     try {
-       const res = await fetch('/api/shows');
-       const shows = await res.json();
+    map.on('load', async () => {
+      try {
+        const res = await fetch('/api/shows');
+        const shows = await res.json();
 
-       shows.forEach((show) => {
-         const lat = show.venues?.latitude;
-         const lng = show.venues?.longitude;
-         const artistName = show.artists?.name || '';
-         const venueName = show.venues?.name || '';
-         const showDate = new Date(show.show_date).toLocaleDateString();
+        shows.forEach((show) => {
+          const venue = show.venues;
+          const artist = show.artist_profiles;
 
-         if (!lat || !lng) return;
+          if (!venue?.location) return;
 
-         const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
-           '<div style="font-family:system-ui;padding:4px">' +
-           '<div style="font-weight:700;font-size:14px">' + artistName + '</div>' +
-           '<div style="font-size:13px">' + venueName + '</div>' +
-           '<div style="font-size:12px;color:#666">' + showDate + '</div>' +
-           '</div>'
-         );
+          // PostGIS returns location as GeoJSON
+          const lng = venue.location.coordinates?.[0];
+          const lat = venue.location.coordinates?.[1];
 
-         new mapboxgl.Marker()
-           .setLngLat([lng, lat])
-           .setPopup(popup)
-           .addTo(map);
-       });
-     } catch (err) {
-       console.error('Failed to load shows', err);
-     }
-   });
+          if (!lat || !lng) return;
 
-   return () => map.remove();
- }, []);
+          const artistName = artist?.name || 'Unknown Artist';
+          const venueName = venue.name || '';
+          const showDate = new Date(show.starts_at).toLocaleDateString();
 
- return (
-   <div
-     ref={mapContainerRef}
-     style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%' }}
-   />
- );
+          const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
+            '<div style="font-family:system-ui;padding:4px">' +
+            '<div style="font-weight:700;font-size:14px">' + artistName + '</div>' +
+            '<div style="font-size:13px">' + venueName + '</div>' +
+            '<div style="font-size:12px;color:#666">' + showDate + '</div>' +
+            '</div>'
+          );
+
+          new mapboxgl.Marker()
+            .setLngLat([lng, lat])
+            .setPopup(popup)
+            .addTo(map);
+        });
+      } catch (err) {
+        console.error('Failed to load shows', err);
+      }
+    });
+
+    return () => map.remove();
+  }, []);
+
+  return (
+    <div
+      ref={mapContainerRef}
+      style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%' }}
+    />
+  );
 }
